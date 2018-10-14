@@ -10,16 +10,16 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import resource.manager.util.FileUtil;
 import resource.manager.util.LogUtil;
+import resource.manager.util.ThreadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import resource.manager.util.ThreadUtil;
 
 import java.io.File;
 
 /**
  * Created by Zhang Yue on 5/12/2018
  */
-public class S3Resource extends AbstractResource implements UploadableResource {
+public class S3Resource extends AbstractOnlineResource implements UploadableResource {
     private Logger logger = LoggerFactory.getLogger(ThreadUtil.getClassName());
 
     private static S3ResourceClient resourceStoreHelper;
@@ -65,6 +65,7 @@ public class S3Resource extends AbstractResource implements UploadableResource {
      */
     public void uploadToResourceStore() {
         resourceStoreHelper.putObject(rm.getResourceStore().getBucketName(), resourceObject.getKey(), resourceFile);
+        resourceStoreHelper.headObject(rm.getResourceStore().getBucketName(), resourceObject.getKey());
     }
 
     /**
@@ -84,11 +85,25 @@ public class S3Resource extends AbstractResource implements UploadableResource {
     }
 
     /**
+     * Is the resource in resource staging bucket expired (resource store has newer last-modified.
+     * @return
+     */
+    public boolean isResourceBucketExpired() {
+        ObjectMetadata mdStaging = s3Helper.headObject(rm.getResourceStaging().getBucketName(), resourceObject.getKey());
+        ObjectMetadata mdStore = resourceStoreHelper.headObject(rm.getResourceStore().getBucketName(), resourceObject.getKey());
+
+        return mdStaging.getLastModified().getTime() < mdStore.getLastModified().getTime();
+    }
+
+    /**
      * Downloads the resource from resource bucket to local resource directory.
      */
     public void uploadToResourceBucket(){
         String bucketName = rm.getResourceStaging().getBucketName();
-        if(!s3Helper.doesBucketExist(bucketName)) {
+        /** TODO OSS-1110
+        if(!s3Helper.doesBucketExistV2(bucketName)) {
+         */
+        if(!s3Helper.doesBucketExist(bucketName)) { /** TODO OSS-1110 */
             s3Helper.createBucket(bucketName);
         }
         s3Helper.putObject(bucketName, resourceObject.getKey(), resourceFile);
@@ -230,6 +245,16 @@ public class S3Resource extends AbstractResource implements UploadableResource {
             return s3Object;
         }
 
+        public ObjectMetadata headObject(String bucketName, String key) {
+            printOperation("HeadObject",
+                    getEndpoint(), getPin(), getUserId(), getAccessKeyId(), bucketName, key);
+
+            ObjectMetadata metadata = s3Client.getObjectMetadata(bucketName, key);
+            printObjectMetadata(metadata);
+
+            return metadata;
+        }
+
         protected void printOperation(
                 String operation, String endpoint, String pin, String userId, String accessKey, String bucket
         ) {
@@ -257,8 +282,6 @@ public class S3Resource extends AbstractResource implements UploadableResource {
             LogUtil.printResult("Metadata.ContentMd5", s3Object.getObjectMetadata().getContentMD5());
             LogUtil.printResult("Metadata.ContentType", s3Object.getObjectMetadata().getContentType());
             LogUtil.printResult("Metadata.ContentLength", String.valueOf(s3Object.getObjectMetadata().getContentLength()));
-            LogUtil.printResult("Metadata.ContentEncoding", s3Object.getObjectMetadata().getContentEncoding());
-            LogUtil.printResult("Metadata.ContentDisposition", s3Object.getObjectMetadata().getContentDisposition());
             if (s3Object.getObjectMetadata().getContentRange() != null) {
                 LogUtil.printResult("Metadata.ContentRange.start",
                         String.valueOf(s3Object.getObjectMetadata().getContentRange()[0]));
@@ -267,11 +290,21 @@ public class S3Resource extends AbstractResource implements UploadableResource {
                             String.valueOf(s3Object.getObjectMetadata().getContentRange()[1]));
                 }
             }
-            LogUtil.printResult("Metadata.CacheControl", s3Object.getObjectMetadata().getCacheControl());
             if(s3Object.getObjectMetadata().getLastModified() != null) {
                 LogUtil.printResult("Metadata.LastModified", String.valueOf(s3Object.getObjectMetadata().getLastModified()));
             }
             LogUtil.printResult("Metadata.PartCount", s3Object.getObjectMetadata().getPartCount());
+        }
+
+        public void printObjectMetadata(ObjectMetadata om) {
+            if(om == null) {
+                return;
+            }
+            LogUtil.printResult("Metadata.ContentMd5", om.getContentMD5());
+            LogUtil.printResult("Metadata.ContentType", om.getContentType());
+            LogUtil.printResult("Metadata.ETag", om.getETag());
+            LogUtil.printResult("Metadata.InstanceLength", om.getInstanceLength());
+            LogUtil.printResult("Metadata.LastModified", om.getLastModified());
         }
     }
 }

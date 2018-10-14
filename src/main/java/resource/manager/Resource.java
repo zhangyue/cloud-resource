@@ -23,14 +23,20 @@ public interface Resource {
     String getDescription();
 
     /**
-     * Gets the resource bucket name.
-     * @return
-     */
-    ResourceObject getResourceObject();
-
-    /**
-     * Gets the file in local.
+     * Gets the resource file in local, guaranteeing the existence of the resource file.
      * @return
      */
     File getResourceFile();
+
+    /**
+     * Gets the resource file in local.
+     * @param guaranteeExistence Whether guarantees the existence of the resource file.
+     *                           If true, it make sure the resource file exists in local. If not, it tries to retrieve
+     *                           the resource file from resource staging bucket or (if not available in resource
+     *                           staging bucket) resource store bucket, or generate the resource from scratch (depending
+     *                           on the actual implementation).
+     *                           If false, it just returns the file object without checking the existence of the file.
+     * @return
+     */
+    File getResourceFile(boolean guaranteeExistence);
 }

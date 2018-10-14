@@ -41,7 +41,7 @@ public class VideoResource {
     public static S3VideoResource video_mpg_mpeg2_p_small
             = new S3VideoResource("video", "katamari-star8-10s.mpeg", "mpg mpeg2video 1280x720 9.879000 11M");
     public static S3VideoResource video_divx_mpeg4_1080p_medium
-            = new S3VideoResource("video", "Micayala_DivX1080p_ASP.divx", "divx mpeg4 1920x768 137.095292 297M");
+            = new S3VideoResource("video", "Micayala_DivX1080p_ASP.divx", "divx mpeg4 1920x768 137.095292 20M");
     public static S3VideoResource video_flv_flv1_720p_small
             = new S3VideoResource("video", "big_buck_bunny_720p_10mb.flv", "flv flv1 1280x720 54.082000 11M");
     public static S3VideoResource video_flv_vp6f_480p_small

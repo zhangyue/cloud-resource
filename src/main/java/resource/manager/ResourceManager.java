@@ -3,9 +3,9 @@
  */
 package resource.manager;
 
+import resource.manager.util.ThreadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import resource.manager.util.ThreadUtil;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

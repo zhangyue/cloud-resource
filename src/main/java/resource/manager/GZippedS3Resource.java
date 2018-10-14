@@ -1,11 +1,11 @@
 package resource.manager;
 
 import resource.manager.exception.ResourceNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import resource.manager.util.GZipUtil;
 import resource.manager.util.Md5Util;
 import resource.manager.util.ThreadUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 

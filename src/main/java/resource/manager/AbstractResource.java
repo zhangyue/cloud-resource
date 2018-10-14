@@ -2,13 +2,13 @@ package resource.manager;
 
 import resource.manager.exception.ResourceManagerNotInitializedException;
 import resource.manager.exception.ResourceNotFoundException;
+import resource.manager.util.ThreadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import resource.manager.util.ThreadUtil;
 
 import java.io.File;
 
-public abstract class AbstractResource implements UploadableResource {
+public abstract class AbstractResource implements Resource {
     private static Logger logger = LoggerFactory.getLogger(ThreadUtil.getClassName());
 
     /**
@@ -36,6 +36,11 @@ public abstract class AbstractResource implements UploadableResource {
      * The file object of the local resource directory.
      */
     protected File localResourceTagDir;
+
+    /**
+     * Is the resource already available in the resource bucket, considering the time stamp (last-modified field).
+     */
+    protected boolean isAlreadyAvailable = false;
 
     /**
      * Resource manager singleton.
@@ -94,77 +99,21 @@ public abstract class AbstractResource implements UploadableResource {
     }
 
     /**
-     * Gets the name of the bucket where the resource is uploaded.
-     * @return
-     */
-    public ResourceObject getResourceObject() {
-        if(isAvailableInResourceBucket()) {
-            return resourceObject;
-        }
-
-        if(!resourceFile.exists()) {
-            if(isAvailableInResourceStore()) {
-                downloadFromResourceStore();
-            } else {
-                throw new ResourceNotFoundException(this);
-            }
-        }
-
-        uploadToResourceBucket();
-
-        return resourceObject;
-    }
-
-    /**
-     * Gets the file in local.
+     * Gets the resource file in local, guaranteeing the existence of the resource file.
      * @return
      */
     public File getResourceFile() {
-        if(resourceFile.exists()) {
-            return resourceFile;
-        }
-
-        if(isAvailableInResourceBucket()) {
-            downloadFromResourceBucket();
-        } else if(isAvailableInResourceStore()) {
-            downloadFromResourceStore();
-            uploadToResourceBucket();
-        } else {
-            throw new ResourceNotFoundException(this);
-        }
-
-        return resourceFile;
+        return getResourceFile(true);
     }
 
     /**
-     * Is the resource available in online resource store.
+     * Gets the resource file in local.
+     * @param guaranteeExistence Whether guarantees the existence of the resource file.
+     *                           If true, it make sure the resource file exists in local. If not, it tries to retrieve
+     *                           the resource file from resource staging bucket or (if not available in resource
+     *                           staging bucket) resource store bucket.
+     *                           If false, it just returns the file object without checking the existence of the file.
      * @return
      */
-    public abstract boolean isAvailableInResourceStore();
-
-    /**
-     * Uploads the resource from resource store to resource store bucket.
-     */
-    public abstract void uploadToResourceStore();
-
-    /**
-     * Downloads the resource to local resource directory.
-     */
-    public abstract void downloadFromResourceStore();
-
-    /**
-     * Is the resource available in resource bucket.
-     * @return
-     */
-    public abstract boolean isAvailableInResourceBucket();
-
-    /**
-     * Downloads the resource from resource bucket to local resource directory.
-     */
-    public abstract void uploadToResourceBucket();
-
-    /**
-     * Uploads the resource to resource bucket.
-     */
-    public abstract void downloadFromResourceBucket();
+    public abstract File getResourceFile(boolean guaranteeExistence);
 }

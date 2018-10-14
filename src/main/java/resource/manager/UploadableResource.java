@@ -1,6 +1,6 @@
 package resource.manager;
 
-public interface UploadableResource extends Resource {
+public interface UploadableResource extends DownloadableResource {
     /**
      * Is the resource available in online resource store.
      * @return
