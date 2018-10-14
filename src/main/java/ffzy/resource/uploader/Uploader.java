@@ -7,7 +7,6 @@ package ffzy.resource.uploader;
 import ffzy.resource.ImageResource;
 import ffzy.resource.LargeFileResource;
 import ffzy.resource.VideoResource;
-import resource.*;
 import ffzy.resource.manager.ResourceManager;
 import ffzy.resource.manager.UploadableResource;
 import org.testng.annotations.Test;
