@@ -1,4 +1,4 @@
-# Test resource manager
+## Test resource manager
 * Manages test resource files in a hybrid manner
     * Resource files are centrally managed in automation-resource-store-do-not-remove bucket in cn-east-2.
     * In each test environment (including both in-door test environment and and each region online) a copy of the resource files are maintained in automation-resource-${pin}-${region} bucket for each user.
